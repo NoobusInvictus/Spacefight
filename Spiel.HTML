@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raumschiffschlacht</title>
+
+    <style>
+        canvas {
+            background-color: black;
+        }
+    </style>
+
+    <script>
+        let Key_Space = false; //32
+        let Key_Up = false; //38
+        let Key_Down = false; //40
+        let canvas; //in Funktion startGame() definiert zugriff auf canvas in unserem document/website
+        let context2d; // in Funktion startGame() definiert zum schreiben von 2d Inhalten auf Canvas
+        let backgroundImage = new Image(); // erstellen eines neuen Objektes "image" in eine Variable. Kann dann mit Methode context2d.drawImage gezeichnet werden. 
+        let arrayUfos = [];
+
+
+
+
+        document.onkeydown = function (e) {
+            if (e.keyCode == 32) { // Code/Zahl 32 für Leertaste gedrückt
+                Key_Space = true;
+            }
+
+            if (e.keyCode == 38) { // Code/Zahl 38 Pfeiltaste oben 
+                Key_Up = true;
+            }
+
+            if (e.keyCode == 40) { // Code/Zahl 40 Pfeiltaste unten 
+                Key_Down = true;
+            }
+        }
+
+
+        document.onkeyup = function (e) {
+            if (e.keyCode == 32) { // Code/Zahl 32 für Leertaste losgelassen
+                Key_Space = false;
+            }
+
+            if (e.keyCode == 38) { // Code/Zahl 38 Pfeiltaste oben losgelassen
+                Key_Up = false;
+            }
+
+            if (e.keyCode == 40) { // Code/Zahl 40 Pfeiltaste unten losgelassen
+                Key_Down = false;
+            }
+        }
+
+        //Objects 
+        let rocket = {
+            x: 100, //Pixelkoordinate auf x-Achse für Bild oben Links
+            y: 200, //Pixelkoordinate y-Achse für Bild oben Links
+            width: 100, //Pixelkoordinate auf x-Achse = rocket.x + rocket.width unten rechts
+            height: 50, //Pixelkoordinate auf y-Achse = rocket.y + rocket.heights unten rechts
+            src: 'Bilder/rocket.jpg'
+        };
+
+
+        //spiel starten: Aufrufen der Funktion. Erstellen der Zugriffe auf Canvas/Document.
+        function startGame() {
+            canvas = document.getElementById('canvasid'); //zugriff auf canvas in unserem document/website
+            context2d = canvas.getContext("2d"); //context2d ist eine VAriable mit der Referenz auf den 2d kontext
+
+            loadImages();//Funktion lädt die URL der Bilder in in die Image-Objekte image.src
+
+            setInterval(update, 1000 / 25); /* setzt den Intervall für die aktualisierung der funktion update().
+                                            //aktulisiert die Position rocket.y und ufo.x*/
+
+            setInterval(createUfos, 5000) //setzt den Intervall für das erstellen neuer Ufos
+
+            setInterval(checkForCollision, 1000 / 25);
+
+            draw(); //funktion zeichnet aktualisierte Images
+
+        };
+
+        function checkForCollision() {
+            arrayUfos.forEach(ufo => {
+                if ((rocket.x + rocket.width) > (ufo.x) //Abfrage über ".forEach" weil Objekt "ufo" im Feld arrayUfos enthalten sind. Obejekt "ufo" wird vorher nicht definiert. 
+                    &&
+                    (rocket.y + rocket.height) > (ufo.y)
+                    &&
+                    (rocket.x) < (ufo.x)
+                    &&
+                    (rocket.y < ufo.y)) {  //Vergleich Position der Rackete und ufo
+                    rocket.img.src = "Bilder/explosion.jpg" //direkte weitergabe der URL an Objekt rocket.img.src ohne vorher über eigenschaft rocket.src zu definieren.  
+                    arrayUfos = arrayUfos.filter(u => u != ufo); /* Methode ".filter" filtert alle Felder des Arrays "arrayUfos und gleicht dieses mit dem aktuellen Objekt ufo ab"
+                                                    das Feld das miteinander übereinstimmt wird entfernt (Explodiertes Ufo) weil Bedingung "!=" nicht erfüllt ist (false). 
+                                                    Bedingung "!=" (wenn erfüllt true) in der Methode definiert was beibehalten werden soll. Gefiltertes Array muss wieder in das Originale Array geschrieben werden.*/
+                    console.log("Collision!!")
+                };
+            });
+
+        };
+
+
+
+
+        function update() {
+            if (Key_Up) {
+                rocket.y -= 4;
+            }
+            if (Key_Down) {
+                rocket.y += 4;
+            }
+
+            arrayUfos.forEach(ufo => {
+                ufo.x -= 5; //ändert die Position der Eingeschaft arrayUfos.x (horizontal)
+            });
+        };
+
+        //Zum erstellen einzelner Ufos. Später Aufrufbar nach einem gewissen Zeitabstand. 
+        function createUfos() {
+            //ufo=Objekt zum Anhängen an arrayUfos. 
+            let ufo = {
+                x: 800, //startpunkt 800 auserhalb des Canvas 720px (sichtbarer Bereich). Damit Ufo nicht im Bild direkt spawnt. 
+                y: 200,
+                width: 100,
+                height: 40,
+                src: 'Bilder/ufo.jpg',
+                img: new Image(),
+
+            };
+            ufo.img.src = ufo.src;  //laden der URL aus Objekt ufo.src in Objekt Image. Kann dann mit Methode context2d.drawImage gezeichnet werden. 
+            arrayUfos.push(ufo); //push Methode zum hinzufügen von Objekten/elemten an Arrays. 
+        };
+
+        //Laden der Bilder in Objekte "Image"
+        function loadImages() {
+            backgroundImage.src = "Bilder/space.jpg"; // zuweisen der URL an "image" Objekt mit src
+
+            rocket.img = new Image(); //erstellen eines neuen "Image" objektes in rocket.img. Neue Eigenschaft "img" in Objekt Rocket hinzugefügt
+            rocket.img.src = rocket.src; // übergabe der Bild URL and neue Objekteigenschaft "img" in rocket
+
+
+        };
+
+        //aufrufen der Zeichenfunktion. 
+        function draw() {
+            context2d.drawImage(backgroundImage, 0, 0); //Methode drawImage() zeichnet Backroundimage an Koordinaten 0, 0. Context2d ist der zugriff auf unser Document. 
+            context2d.drawImage(rocket.img, rocket.x, rocket.y, rocket.width, rocket.height); //Andere angabe mit .img weil rocket ein Obejekt/JSON Format ist. 
+            requestAnimationFrame(draw);
+
+            /*arrayUfos.forEach(function(ufo){
+                 context2d.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+             });*/  // alte forEach Varriante mit Anonymer Funktion. Angabe der Parameter geändert
+
+            arrayUfos.forEach(ufo => {
+                context2d.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+            }); /*Varriante mit Arrow Funktion. forEach hat 3 Parameter (element, Index, array)
+                //"element" ist nur ein platzhalter um auf die Felder des angegebenen Arrays zu zeigen. 
+                Der Name ist egal. In unserem Fall ufo. ufo.img = arrayUfos.img. 
+                */
+
+
+        };
+
+
+
+    </script>
+
+
+</head>
+
+<body onload="startGame()">
+    <canvas id=canvasid width="720" height="480"></canvas>
+</body>
+
+</html>
